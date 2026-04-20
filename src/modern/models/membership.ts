@@ -24,4 +24,5 @@ export enum PaymentMethod {
 
 export enum BillingInterval {
     Monthly = "monthly",
+    Yearly = "yearly"
 }
