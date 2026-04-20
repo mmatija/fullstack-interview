@@ -18,7 +18,6 @@ export class MembershipApplicationService {
         const validFrom = membershipApplication.validFrom ? moment(membershipApplication.validFrom) : now.clone()
         const validUntil = this.calculateValidUntil(now, membershipApplication)
         const membership = {
-            id: 0,
             uuid: uuid(),
             ...membershipApplication,
             state: this.calculateState(now, validFrom, membershipApplication),

@@ -1,46 +1,52 @@
-import { beforeAll, describe, expect, it } from "@jest/globals";
+import { beforeEach, describe, expect, it } from "@jest/globals";
 import { InMemoryMembershipRepository } from "../../../src/modern/repositories/in-memory-membership-repository";
 import { BillingInterval, Membership, MembershipState, PaymentMethod } from "../../../src/modern/models/membership";
-import { MembershipFactory } from "../factory/membership";
 
 describe("InMemoryMembershipRepository", () => {
 
+    const membershipWithoutId: Omit<Membership, 'id'> = {
+        uuid: "123e4567-e89b-12d3-a456-426614174000",
+        name: "Platinum Plan",
+        userId: 2000,
+        recurringPrice: 50.0,
+        validFrom: new Date("2023-01-01"),
+        validUntil: new Date("2023-12-31"),
+        state: MembershipState.Active,
+        assignedBy: "Admin",
+        paymentMethod: PaymentMethod.CreditCard,
+        billingInterval: BillingInterval.Monthly,
+        billingPeriods: 12
+    }
 
     describe("createMembership", () => {
-        const repository = new InMemoryMembershipRepository()
+        let repository: InMemoryMembershipRepository
 
-        it("returns created membership", async () => {
-            const membership: Membership = {
-                id: 1,
-                uuid: "123e4567-e89b-12d3-a456-426614174000",
-                name: "Platinum Plan",
-                userId: 2000,
-                recurringPrice: 150.0,
-                validFrom: new Date("2023-01-01"),
-                validUntil: new Date("2023-12-31"),
-                state: MembershipState.Active,
-                assignedBy: "Admin",
-                paymentMethod: PaymentMethod.CreditCard,
-                billingInterval: BillingInterval.Monthly,
-                billingPeriods: 12
-            }
-            const createdMembership = await repository.createMembership(membership)
-            expect(createdMembership).toEqual(membership)
+        beforeEach(() => {
+            repository = new InMemoryMembershipRepository()
         })
 
+        it("assigns an id to the created membership", async () => {
+            const createdMembership = await repository.createMembership(membershipWithoutId)
+            expect(createdMembership.id).toEqual(expect.any(Number))
+        })
+
+        it("returns the created membership with the original data", async () => {
+            const createdMembership = await repository.createMembership(membershipWithoutId)
+            expect(createdMembership).toMatchObject(membershipWithoutId)
+        })
     })
 
     describe("getMemberships", () => {
-        const repository = new InMemoryMembershipRepository()
-        const membershipFactory = new MembershipFactory()
+        let repository: InMemoryMembershipRepository
+        let membership1: Membership
+        let membership2: Membership
         const userId = 2000
-        const membership1 = membershipFactory.build({ id: 1, userId })
-        const membership2 = membershipFactory.build({ id: 2, userId })
-        membershipFactory.build({ id: 3, userId: 3000 })
 
-        beforeAll(async () => {
-            await repository.createMembership(membership1)
-            await repository.createMembership(membership2)
+        beforeEach(async () => {
+            repository = new InMemoryMembershipRepository()
+            membership1 = await repository.createMembership({ ...membershipWithoutId, uuid: "uuid-1", userId })
+            membership2 = await repository.createMembership({ ...membershipWithoutId, uuid: "uuid-2", userId })
+            await repository.createMembership({ ...membershipWithoutId, uuid: "uuid-3", userId: 3000 })
         })
 
         it("returns the list of all memberships for given user id", async () => {
