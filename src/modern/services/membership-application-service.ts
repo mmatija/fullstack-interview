@@ -16,7 +16,7 @@ export class MembershipApplicationService {
         }
         const now = moment()
         const validFrom = membershipApplication.validFrom ? moment(membershipApplication.validFrom) : now.clone()
-        const validUntil = this.calculateValidUntil(now, membershipApplication)
+        const validUntil = this.calculateValidUntil(validFrom, membershipApplication)
         const storedMembership = await this.membershipRepository.createMembership({
             uuid: uuid(),
             ...membershipApplication,

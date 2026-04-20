@@ -61,31 +61,34 @@ describe("membership application service", () => {
         })
 
         describe("when billingInterval is 'weekly'", () => {
-            it("sets validUntil to 'billingPeriods' weeks from now", async () => {
+            it("sets validUntil to 'billingPeriods' weeks from validFrom", async () => {
                 const billingPeriods = 4
-                const membershipApplication = membershipApplicationFactory.build({ billingInterval: BillingInterval.Weekly, billingPeriods })
+                const validFrom = new Date("2023-01-01")
+                const membershipApplication = membershipApplicationFactory.build({ billingInterval: BillingInterval.Weekly, billingPeriods, validFrom })
                 const createdMembership = await membershipApplicationService.createMembership(membershipApplication)
-                const expectedValidUntil = moment().add(billingPeriods, "weeks")
+                const expectedValidUntil = moment(validFrom).add(billingPeriods, "weeks")
                 expect(moment(createdMembership.validUntil).isSame(expectedValidUntil, "day")).toBeTruthy()
             })
         })
 
         describe("when billingInterval is 'monthly'", () => {
-            it("sets validUntil to 'billingPeriods' months from now", async () => {
+            it("sets validUntil to 'billingPeriods' months from validFrom", async () => {
                 const billingPeriods = 7
-                const membershipApplication = membershipApplicationFactory.build({ billingInterval: BillingInterval.Monthly, billingPeriods })
+                const validFrom = new Date("2023-01-01")
+                const membershipApplication = membershipApplicationFactory.build({ billingInterval: BillingInterval.Monthly, billingPeriods, validFrom })
                 const createdMembership = await membershipApplicationService.createMembership(membershipApplication)
-                const expectedValidUntil = moment().add(billingPeriods, "months")
+                const expectedValidUntil = moment(validFrom).add(billingPeriods, "months")
                 expect(moment(createdMembership.validUntil).isSame(expectedValidUntil, "day")).toBeTruthy()
             })
         })
 
         describe("when billingInterval is 'yearly'", () => {
-            it("sets validUntil to 'billingPeriods' years from now", async () => {
+            it("sets validUntil to 'billingPeriods' years from validFrom", async () => {
                 const billingPeriods = 3
-                const membershipApplication = membershipApplicationFactory.build({ billingInterval: BillingInterval.Yearly, billingPeriods })
+                const validFrom = new Date("2023-01-01")
+                const membershipApplication = membershipApplicationFactory.build({ billingInterval: BillingInterval.Yearly, billingPeriods, validFrom })
                 const createdMembership = await membershipApplicationService.createMembership(membershipApplication)
-                const expectedValidUntil = moment().add(billingPeriods, "years")
+                const expectedValidUntil = moment(validFrom).add(billingPeriods, "years")
                 expect(moment(createdMembership.validUntil).isSame(expectedValidUntil, "day")).toBeTruthy()
             })
         })
