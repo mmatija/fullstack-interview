@@ -3,7 +3,7 @@ import { Factory } from 'fishery';
 
 export class MembershipApplicationFactory {
 
-    private membershipFactory = Factory.define<MembershipApplication>(({ sequence, params }) => ({
+    private membershipApplicationFactory = Factory.define<MembershipApplication>(({ sequence, params }) => ({
             name: `Membership Plan`,
             userId: 1000 + sequence,
             recurringPrice: 50.0,
@@ -15,6 +15,6 @@ export class MembershipApplicationFactory {
         }))
 
     public build(membershipData: Partial<MembershipApplication> = {}): MembershipApplication {
-        return this.membershipFactory.build(membershipData);
+        return this.membershipApplicationFactory.build(membershipData);
     }
 }
