@@ -20,9 +20,12 @@ export class Server {
         this.app.use(errorHandler);
     }
 
-    public start(port: number = 3099) {
-        this.httpServer = this.app.listen(port, () => {
-            console.log(`Server running on http://localhost:${port}`)
+    public start(port: number = 3099): Promise<void> {
+        return new Promise((resolve) => {
+            this.httpServer = this.app.listen(port, () => {
+                console.log(`Server running on http://localhost:${port}`)
+                resolve()
+            })
         })
     }
 

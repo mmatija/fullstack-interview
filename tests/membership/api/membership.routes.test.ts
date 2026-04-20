@@ -9,8 +9,8 @@ describe("Get Memberships", () => {
     const server = new Server()
     const port = 8001
 
-    beforeAll(() => {
-        server.start(port)
+    beforeAll(async () => {
+        await server.start(port)
     })
 
     afterAll(async () => {
