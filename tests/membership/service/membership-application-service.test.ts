@@ -20,13 +20,36 @@ describe("membership application service", () => {
             const membershipApplication = membershipApplicationFactory.build({ userId })
             await membershipApplicationService.createMembership(membershipApplication)
             const createdMemberships = await membershipRespoitory.getMemberships(membershipApplication.userId)
-            expect(createdMemberships).toEqual([expect.objectContaining({...membershipApplication})])
+            expect(createdMemberships).toEqual([expect.objectContaining({ ...membershipApplication })])
         })
 
         it("sets assignedBy to 'Admin'", async () => {
             const membershipApplication = membershipApplicationFactory.build()
             const createdMembership = await membershipApplicationService.createMembership(membershipApplication)
             expect(createdMembership.assignedBy).toEqual("Admin")
+        })
+
+        it("returns the list of all periods for membership", async () => {
+            const validFrom = moment().toDate()
+            const membershipApplication = membershipApplicationFactory.build({ validFrom: validFrom, billingInterval: BillingInterval.Weekly, billingPeriods: 2 })
+            const createdMembership = await membershipApplicationService.createMembership(membershipApplication)
+            expect(createdMembership.periods).toEqual([
+                {
+                    id: 1,
+                    uuid: expect.any(String),
+                    membershipId: createdMembership.id,
+                    start: validFrom,
+                    end: moment(validFrom).add(1, "week").toDate(),
+                    state: 'planned'
+                },{
+                    id: 2,
+                    uuid: expect.any(String),
+                    membershipId: createdMembership.id,
+                    start: moment(validFrom).add(1, "week").toDate(),
+                    end: moment(validFrom).add(2, "weeks").toDate(),
+                    state: 'planned'
+                }
+            ])
         })
 
         describe("when validFrom is not provided", () => {
@@ -46,7 +69,7 @@ describe("membership application service", () => {
                 expect(moment(createdMembership.validUntil).isSame(expectedValidUntil, "day")).toBeTruthy()
             })
         })
-        
+
         describe("when billingInterval is 'monthly'", () => {
             it("sets validUntil to 'billingPeriods' months from now", async () => {
                 const billingPeriods = 7

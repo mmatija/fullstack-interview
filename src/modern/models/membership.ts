@@ -8,13 +8,26 @@ export interface MembershipApplication {
     billingPeriods: number;
 }
 
-export interface Membership extends MembershipApplication {
+export interface StoredMembership extends MembershipApplication {
     id: number;
     uuid: string;
     state: MembershipState;
     validFrom: Date;
     validUntil: Date;
     assignedBy: string;
+}
+
+export interface Membership extends StoredMembership {
+    periods: MembershipPeriod[];
+}
+
+export interface MembershipPeriod {
+    id: number;
+    uuid: string;
+    membershipId: number;
+    start: Date;
+    end: Date;
+    state: string;
 }
 
 export enum MembershipState {

@@ -1,10 +1,10 @@
 import { beforeEach, describe, expect, it } from "@jest/globals";
 import { InMemoryMembershipRepository } from "../../../src/modern/repositories/in-memory-membership-repository";
-import { BillingInterval, Membership, MembershipState, PaymentMethod } from "../../../src/modern/models/membership";
+import { BillingInterval, StoredMembership, MembershipState, PaymentMethod } from "../../../src/modern/models/membership";
 
 describe("InMemoryMembershipRepository", () => {
 
-    const membershipWithoutId: Omit<Membership, 'id'> = {
+    const membershipWithoutId: Omit<StoredMembership, 'id'> = {
         uuid: "123e4567-e89b-12d3-a456-426614174000",
         name: "Platinum Plan",
         userId: 2000,
@@ -38,8 +38,8 @@ describe("InMemoryMembershipRepository", () => {
 
     describe("getMemberships", () => {
         let repository: InMemoryMembershipRepository
-        let membership1: Membership
-        let membership2: Membership
+        let membership1: StoredMembership
+        let membership2: StoredMembership
         const userId = 2000
 
         beforeEach(async () => {

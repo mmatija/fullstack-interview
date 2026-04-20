@@ -1,6 +1,6 @@
-import { Membership } from "../models/membership";
+import { StoredMembership } from "../models/membership";
 
 export interface MembershipRepository {
-    createMembership(membership: Omit<Membership, 'id'>): Promise<Membership>
-    getMemberships(userId: number): Promise<Membership[]>
+    createMembership(membership: Omit<StoredMembership, 'id'>): Promise<StoredMembership>
+    getMemberships(userId: number): Promise<StoredMembership[]>
 }
