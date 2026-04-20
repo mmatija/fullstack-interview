@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, it } from "@jest/globals";
-import { InMemoryMembershipRepository } from "../../src/modern/repositories/in-memory-membership-repository";
-import { BillingInterval, Membership, MembershipState, PaymentMethod } from "../../src/modern/models/membership";
-import { MembershipFactory } from "../factories/membership";
+import { InMemoryMembershipRepository } from "../../../src/modern/repositories/in-memory-membership-repository";
+import { BillingInterval, Membership, MembershipState, PaymentMethod } from "../../../src/modern/models/membership";
+import { MembershipFactory } from "../factory/membership";
 
 describe("InMemoryMembershipRepository", () => {
 

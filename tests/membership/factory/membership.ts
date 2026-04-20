@@ -1,4 +1,4 @@
-import { BillingInterval, Membership, MembershipState, PaymentMethod } from "../../src/modern/models/membership";
+import { BillingInterval, Membership, MembershipState, PaymentMethod } from "../../../src/modern/models/membership";
 import { Factory } from 'fishery';
 
 export class MembershipFactory {
