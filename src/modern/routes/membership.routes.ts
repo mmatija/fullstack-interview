@@ -5,7 +5,11 @@ import membershipPeriods from "../../data/membership-periods.json"
 const router = express.Router();
 
 router.get("/", (req: Request, res: Response) => {
-  throw new Error('not implemented')
+    const response = memberships.map(membership => {
+        const periods = membershipPeriods.filter(period => period.membership === membership.id)
+        return { membership, periods }
+    })
+    res.json(response)
 })
 
 router.post("/", (req: Request, res: Response) => {
