@@ -35,10 +35,8 @@ describe("InMemoryMembershipRepository", () => {
         const membershipFactory = new MembershipFactory()
         const userId = 2000
         const membership1 = membershipFactory.build({ id: 1, userId })
-
         const membership2 = membershipFactory.build({ id: 2, userId })
-        
-        const membership3 = membershipFactory.build({ id: 3, userId: 3000 })
+        membershipFactory.build({ id: 3, userId: 3000 })
 
         beforeAll(async () => {
             await repository.createMembership(membership1)
