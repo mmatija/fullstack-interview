@@ -19,6 +19,8 @@ export interface Membership extends MembershipApplication {
 
 export enum MembershipState {
     Active = "active",
+    Pending = "pending",
+    Expired = "expired",
 }
 
 export enum PaymentMethod {
@@ -28,5 +30,6 @@ export enum PaymentMethod {
 
 export enum BillingInterval {
     Monthly = "monthly",
+    Weekly = "weekly",
     Yearly = "yearly"
 }

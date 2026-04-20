@@ -2,6 +2,7 @@ import { ValidationError } from "../../../tests/membership/service/validation-er
 import { BillingInterval, Membership, MembershipApplication as MembershipApplication, MembershipState } from "../models/membership";
 import { MembershipRepository } from "../repositories/memberships-repository";
 import { v4 as uuid } from 'uuid';
+import moment from "moment";
 
 export class MembershipService {
 
@@ -13,16 +14,41 @@ export class MembershipService {
         } catch (error) {
             return Promise.reject(error)
         }
+        const now = moment()
+        const validFrom = membershipApplication.validFrom ? moment(membershipApplication.validFrom) : now.clone()
+        const validUntil = this.calculateValidUntil(now, membershipApplication)
         const membership = {
             id: 0,
             uuid: uuid(),
-            state: MembershipState.Active,
-            validFrom: membershipApplication.validFrom ? membershipApplication.validFrom : new Date(),
-            validUntil: new Date(),
-            assignedBy: "Admin",
-            ...membershipApplication
+            ...membershipApplication,
+            state: this.calculateState(now, validFrom, membershipApplication),
+            validFrom: validFrom.toDate(),
+            validUntil,
+            assignedBy: "Admin"
         }
         return this.membershipRepository.createMembership(membership)
+    }
+
+    private calculateState(currentDate: moment.Moment, validFrom: moment.Moment, membershipRequest: MembershipApplication): MembershipState {
+        const membershipValidUntil = this.calculateValidUntil(validFrom, membershipRequest)
+        if (validFrom.isAfter(currentDate)) {
+            return MembershipState.Pending
+        }
+        if (validFrom.isBefore(currentDate) && moment(membershipValidUntil).isBefore(currentDate)) {
+            return MembershipState.Expired
+        }
+
+        return MembershipState.Active
+    }
+
+    private calculateValidUntil(currentDate: moment.Moment, membershipRequest: MembershipApplication): Date {
+        if (membershipRequest.billingInterval === BillingInterval.Weekly) {
+            return currentDate.clone().add(membershipRequest.billingPeriods, "weeks").toDate()
+        } else if (membershipRequest.billingInterval === BillingInterval.Monthly) {
+            return currentDate.clone().add(membershipRequest.billingPeriods, "months").toDate()
+        } else {
+            return currentDate.clone().add(membershipRequest.billingPeriods, "years").toDate()
+        }
     }
 
     private validateMembership(membershipRequest: MembershipApplication): void {
