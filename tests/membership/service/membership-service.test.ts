@@ -1,25 +1,25 @@
 import { describe, it, expect } from "@jest/globals";
 import { MembershipService } from "../../../src/modern/services/membership-service";
-import { MembershipFactory } from "../factory/membership";
 import { InMemoryMembershipRepository } from "../../../src/modern/repositories/in-memory-membership-repository";
 import { ValidationError } from "./validation-error";
-import { BillingInterval, Membership, PaymentMethod } from "../../../src/modern/models/membership";
+import { BillingInterval, MembershipApplication, PaymentMethod } from "../../../src/modern/models/membership";
+import { MembershipApplicationFactory } from "../factory/membership-application";
 
 describe("membership service", () => {
 
-    const membershipRespoitory = new InMemoryMembershipRepository
+    const membershipRespoitory = new InMemoryMembershipRepository()
     const membershipService = new MembershipService(membershipRespoitory)
-    const membershipFactory = new MembershipFactory()
+    const membershipFactory = new MembershipApplicationFactory()
 
 
     describe("createMembership", () => {
 
-        it("creates a new membership", async () => {
+        it("creates a new membership containing the data from the application", async () => {
             const userId = 2000
             const membership = membershipFactory.build({ userId })
             await membershipService.createMembership(membership)
             const createdMemberships = await membershipRespoitory.getMemberships(membership.userId)
-            expect(createdMemberships).toEqual([membership])
+            expect(createdMemberships).toEqual([expect.objectContaining({...membership})])
         })
 
         describe("when recurringPrice is negative", () => {
@@ -84,7 +84,7 @@ describe("membership service", () => {
             })
         })
 
-        async function assertThrowsValidationError(invalidMembership: Membership, expectedMessage: string) {
+        async function assertThrowsValidationError(invalidMembership: MembershipApplication, expectedMessage: string) {
             await expect(membershipService.createMembership(invalidMembership)).rejects.toThrow(expectedMessage)
             await expect(membershipService.createMembership(invalidMembership)).rejects.toThrow(ValidationError)
         }
