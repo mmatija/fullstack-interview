@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, it, expect } from "@jest/globals";
-import { Server } from "../../server";
-import membershipStubs from "../../data/memberships.json"
-import membershipPeriodsStubs from "../../data/membership-periods.json"
+import { Server } from "../../src/server";
+import membershipStubs from "../../src/data/memberships.json"
+import membershipPeriodsStubs from "../../src/data/membership-periods.json"
 
 
 describe("Get Memberships", () => {
