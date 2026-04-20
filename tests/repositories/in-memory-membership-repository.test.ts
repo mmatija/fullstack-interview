@@ -49,6 +49,12 @@ describe("InMemoryMembershipRepository", () => {
             const memberships = await repository.getMemberships(userId)
             expect(memberships).toEqual([membership1, membership2])
         })
-    })
 
+        describe("when there are no memberships for given user id", () => {
+            it("returns an empty list", async () => {
+                const memberships = await repository.getMemberships(9999)
+                expect(memberships).toEqual([])
+            })
+        })
+    })
 })
