@@ -42,13 +42,7 @@ describe("Membership API", () => {
                 billingInterval: "monthly",
                 billingPeriods: 12
             }
-            const response = await fetch(`http://localhost:${port}/memberships`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(requestBody)
-            })
+            const response = await sendCreateMembershipRequest(requestBody)
             const data = await response.json()
             expect(data).toMatchObject({
                 id: expect.any(Number),
@@ -70,13 +64,7 @@ describe("Membership API", () => {
                 billingInterval: "weekly",
                 billingPeriods: 1
             }
-            const response = await fetch(`http://localhost:${port}/memberships`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(requestBody)
-            })
+            const response = await sendCreateMembershipRequest(requestBody)
             const data = await response.json()
             expect(data.periods).toEqual([
                 {
@@ -92,24 +80,72 @@ describe("Membership API", () => {
 
         describe("when name is missing", () => {
             it("returns status code 400", async () => {
-                const requestBody = {
+                await assertBadRequest({
                     userId: userId,
                     recurringPrice: 100,
                     validFrom: "2023-01-01",
                     paymentMethod: "credit card",
                     billingInterval: "weekly",
                     billingPeriods: 1
-                }
-                const response = await fetch(`http://localhost:${port}/memberships`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify(requestBody)
                 })
-                expect(response.status).toBe(400)
+            })
+
+            it("returns error message", async () => {
+                await assertErrorMessage({
+                    userId: userId,
+                    recurringPrice: 100,
+                    validFrom: "2023-01-01",
+                    paymentMethod: "credit card",
+                    billingInterval: "weekly",
+                    billingPeriods: 1
+                }, "missingMandatoryFields")
             })
         })
+
+        describe("when recurringPrice is missing", () => {
+            it("returns status code 400", async () => {
+                await assertBadRequest({
+                    name: "Test Membership",
+                    userId: userId,
+                    validFrom: "2023-01-01",
+                    paymentMethod: "credit card",
+                    billingInterval: "weekly",
+                    billingPeriods: 1
+                })
+            })
+
+            it("returns error message", async () => {
+                await assertErrorMessage({
+                    name: "Test Membership",
+                    userId: userId,
+                    validFrom: "2023-01-01",
+                    paymentMethod: "credit card",
+                    billingInterval: "weekly",
+                    billingPeriods: 1
+                }, "missingMandatoryFields")
+            })
+        })
+
+        async function assertBadRequest(requestBody: object) {
+            const response = await sendCreateMembershipRequest(requestBody)
+            expect(response.status).toEqual(400)
+        }
+
+        async function assertErrorMessage(requestBody: object, expectedMessage: string) {
+            const response = await sendCreateMembershipRequest(requestBody)
+            const data = await response.json()
+            expect(data).toEqual({ message: expectedMessage })
+        }
+
+        async function sendCreateMembershipRequest(requestBody: object) {
+            return await fetch(`http://localhost:${port}/memberships`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(requestBody)
+            })
+        }
 
     })
 })

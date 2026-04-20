@@ -17,8 +17,8 @@ export function createMembershipRouter(membershipService: MembershipApplicationS
     })
 
     router.post("/", async (req: Request, res: Response, next: NextFunction) => {
-        if (!req.body.name) {
-            res.status(400).json({ error: "missingName" })
+        if (!req.body.name || !req.body.recurringPrice) {
+            res.status(400).json({ message: "missingMandatoryFields" })
             return
         }
         try {
@@ -35,7 +35,7 @@ export function createMembershipRouter(membershipService: MembershipApplicationS
             })
         } catch (err) {
             if (err instanceof ValidationError) {
-                res.status(400).json({ error: err.message })
+                res.status(400).json({ message: err.message })
             } else {
                 next(err)
             }
