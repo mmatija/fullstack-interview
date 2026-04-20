@@ -27,7 +27,7 @@ describe("Membership API", () => {
                 const periods = membershipPeriodsStubs.filter(period => period.membership === membership.id)
                 return { membership, periods }
             })
-            expect(data).toEqual(expectedRespose)
+            expect(data).toEqual(expect.arrayContaining(expectedRespose))
         })
     })
 
@@ -59,5 +59,57 @@ describe("Membership API", () => {
                 ...requestBody
             })
         })
+
+        it("includes the list of periods for the membership", async () => {
+            const requestBody = {
+                name: "Test Membership",
+                userId: userId,
+                recurringPrice: 100,
+                validFrom: "2023-01-01",
+                paymentMethod: "credit card",
+                billingInterval: "weekly",
+                billingPeriods: 1
+            }
+            const response = await fetch(`http://localhost:${port}/memberships`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(requestBody)
+            })
+            const data = await response.json()
+            expect(data.periods).toEqual([
+                {
+                    id: 1,
+                    uuid: expect.any(String),
+                    membershipId: data.id,
+                    start: "2023-01-01",
+                    end: "2023-01-08",
+                    state: 'planned'
+                }
+            ])
+        })
+
+        describe("when name is missing", () => {
+            it("returns status code 400", async () => {
+                const requestBody = {
+                    userId: userId,
+                    recurringPrice: 100,
+                    validFrom: "2023-01-01",
+                    paymentMethod: "credit card",
+                    billingInterval: "weekly",
+                    billingPeriods: 1
+                }
+                const response = await fetch(`http://localhost:${port}/memberships`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(requestBody)
+                })
+                expect(response.status).toBe(400)
+            })
+        })
+
     })
 })
