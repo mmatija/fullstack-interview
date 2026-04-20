@@ -4,7 +4,7 @@ import { MembershipRepository } from "../repositories/memberships-repository";
 import { v4 as uuid } from 'uuid';
 import moment from "moment";
 
-export class MembershipService {
+export class MembershipApplicationService {
 
     constructor(private membershipRepository: MembershipRepository) {}
 
