@@ -30,7 +30,7 @@ describe("membership application service", () => {
 
         it("returns the list of all periods for membership", async () => {
             const validFrom = moment().toDate()
-            const membershipApplication = membershipApplicationFactory.build({ validFrom: validFrom, billingInterval: BillingInterval.Weekly, billingPeriods: 2 })
+            const membershipApplication = membershipApplicationFactory.build({ validFrom: validFrom, billingInterval: BillingInterval.Yearly, billingPeriods: 2 })
             const createdMembership = await membershipApplicationService.createMembership(membershipApplication)
             expect(createdMembership.periods).toEqual([
                 {
@@ -38,14 +38,14 @@ describe("membership application service", () => {
                     uuid: expect.any(String),
                     membershipId: createdMembership.id,
                     start: validFrom,
-                    end: moment(validFrom).add(1, "week").toDate(),
+                    end: moment(validFrom).add(1, "year").toDate(),
                     state: 'planned'
                 },{
                     id: 2,
                     uuid: expect.any(String),
                     membershipId: createdMembership.id,
-                    start: moment(validFrom).add(1, "week").toDate(),
-                    end: moment(validFrom).add(2, "weeks").toDate(),
+                    start: moment(validFrom).add(1, "year").toDate(),
+                    end: moment(validFrom).add(2, "years").toDate(),
                     state: 'planned'
                 }
             ])
@@ -56,17 +56,6 @@ describe("membership application service", () => {
                 const membershipApplication = membershipApplicationFactory.build({ validFrom: undefined })
                 const createdMembership = await membershipApplicationService.createMembership(membershipApplication)
                 expect(moment(createdMembership.validFrom).isSame(moment(), "day")).toBeTruthy()
-            })
-        })
-
-        describe("when billingInterval is 'weekly'", () => {
-            it("sets validUntil to 'billingPeriods' weeks from validFrom", async () => {
-                const billingPeriods = 4
-                const validFrom = new Date("2023-01-01")
-                const membershipApplication = membershipApplicationFactory.build({ billingInterval: BillingInterval.Weekly, billingPeriods, validFrom })
-                const createdMembership = await membershipApplicationService.createMembership(membershipApplication)
-                const expectedValidUntil = moment(validFrom).add(billingPeriods, "weeks")
-                expect(moment(createdMembership.validUntil).isSame(expectedValidUntil, "day")).toBeTruthy()
             })
         })
 
@@ -103,8 +92,8 @@ describe("membership application service", () => {
 
         describe("when membership has expired", () => {
             it("sets state to 'expired'", async () => {
-                const pastDate = moment().subtract(2, "weeks").toDate()
-                const membershipApplication = membershipApplicationFactory.build({ validFrom: pastDate, billingInterval: BillingInterval.Weekly, billingPeriods: 1 })
+                const pastDate = moment().subtract(2, "years").toDate()
+                const membershipApplication = membershipApplicationFactory.build({ validFrom: pastDate, billingInterval: BillingInterval.Yearly, billingPeriods: 1 })
                 const createdMembership = await membershipApplicationService.createMembership(membershipApplication)
                 expect(createdMembership.state).toBe("expired")
             })
@@ -112,7 +101,7 @@ describe("membership application service", () => {
 
         describe("when membership is currently active", () => {
             it("sets state to 'active'", async () => {
-                const membershipApplication = membershipApplicationFactory.build({ validFrom: moment().subtract(1, "day").toDate(), billingInterval: BillingInterval.Weekly, billingPeriods: 1 })
+                const membershipApplication = membershipApplicationFactory.build({ validFrom: moment().subtract(1, "day").toDate(), billingInterval: BillingInterval.Yearly, billingPeriods: 1 })
                 const createdMembership = await membershipApplicationService.createMembership(membershipApplication)
                 expect(createdMembership.state).toBe("active")
             })
@@ -178,6 +167,13 @@ describe("membership application service", () => {
                     const validMembershipApplication = membershipApplicationFactory.build({ billingInterval: BillingInterval.Yearly, billingPeriods: 3 })
                     await expect(membershipApplicationService.createMembership(validMembershipApplication)).resolves.toBeTruthy()
                 })
+            })
+        })
+
+        describe("when billing interval is neither monthly nor yearly", () => {
+            it("throws an error", async () => {
+                const invalidMembershipApplication = membershipApplicationFactory.build({ billingInterval: BillingInterval.Weekly, billingPeriods: 5 })
+                await assertThrowsValidationError(invalidMembershipApplication, "invalidBillingPeriods")
             })
         })
 

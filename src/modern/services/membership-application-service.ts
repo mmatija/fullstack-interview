@@ -104,6 +104,8 @@ export class MembershipApplicationService {
                 }
                 throw new ValidationError("billingPeriodsLessThan3Years")
             }
+        } else {
+            throw new ValidationError("invalidBillingPeriods")
         }
     }
 

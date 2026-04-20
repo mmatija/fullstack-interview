@@ -61,7 +61,7 @@ describe("Membership API", () => {
                 recurringPrice: 100,
                 validFrom: "2023-01-01",
                 paymentMethod: "credit card",
-                billingInterval: "weekly",
+                billingInterval: "yearly",
                 billingPeriods: 1
             }
             const response = await sendCreateMembershipRequest(requestBody)
@@ -72,7 +72,7 @@ describe("Membership API", () => {
                     uuid: expect.any(String),
                     membershipId: data.id,
                     start: "2023-01-01",
-                    end: "2023-01-08",
+                    end: "2024-01-01",
                     state: 'planned'
                 }
             ])
@@ -85,7 +85,7 @@ describe("Membership API", () => {
                     recurringPrice: 100,
                     validFrom: "2023-01-01",
                     paymentMethod: "credit card",
-                    billingInterval: "weekly",
+                    billingInterval: "yearly",
                     billingPeriods: 1
                 })
             })
