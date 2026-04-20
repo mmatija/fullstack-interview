@@ -1,11 +1,12 @@
 import { BillingInterval, Membership, MembershipState, PaymentMethod } from "../../../src/modern/models/membership";
 import { Factory } from 'fishery';
+import { v4 as uuid } from 'uuid';
 
 export class MembershipFactory {
 
     private membershipFactory = Factory.define<Membership>(({ sequence, params }) => ({
             id: sequence,
-            uuid: `123e4567-e89b-12d3-a456-42661417400${sequence}`,
+            uuid: uuid(),
             name: `Membership Plan ${sequence}`,
             userId: 1000 + sequence,
             recurringPrice: 50.0,
