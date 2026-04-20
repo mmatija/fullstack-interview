@@ -2,7 +2,7 @@ import express, { Request, Response, NextFunction } from "express"
 import memberships from "../../data/memberships.json"
 import membershipPeriods from "../../data/membership-periods.json"
 import { MembershipApplicationService } from "../services/membership-application-service"
-import { ValidationError } from "../../../tests/membership/service/validation-error"
+import { ValidationError } from "../services/validation-error"
 import moment from "moment"
 
 export function createMembershipRouter(membershipService: MembershipApplicationService) {

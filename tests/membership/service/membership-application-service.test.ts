@@ -1,7 +1,7 @@
 import { describe, it, expect } from "@jest/globals";
 import { MembershipApplicationService } from "../../../src/modern/services/membership-application-service";
 import { InMemoryMembershipRepository } from "../../../src/modern/repositories/in-memory-membership-repository";
-import { ValidationError } from "./validation-error";
+import { ValidationError } from "../../../src/modern/services/validation-error";
 import { BillingInterval, MembershipApplication, PaymentMethod } from "../../../src/modern/models/membership";
 import { MembershipApplicationFactory } from "../factory/membership-application";
 import moment from "moment";

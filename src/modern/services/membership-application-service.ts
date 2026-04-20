@@ -1,4 +1,4 @@
-import { ValidationError } from "../../../tests/membership/service/validation-error";
+import { ValidationError } from "./validation-error";
 import { BillingInterval, Membership, MembershipApplication as MembershipApplication, MembershipPeriod, MembershipState, StoredMembership } from "../models/membership";
 import { MembershipRepository } from "../repositories/memberships-repository";
 import { v4 as uuid } from 'uuid';
