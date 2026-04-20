@@ -16,11 +16,10 @@ describe("membership application service", () => {
     describe("createMembership", () => {
 
         it("creates a new membership containing the data from the application", async () => {
-            const userId = 2000
-            const membershipApplication = membershipApplicationFactory.build({ userId })
-            await membershipApplicationService.createMembership(membershipApplication)
-            const createdMemberships = await membershipRespoitory.getMemberships(membershipApplication.userId)
-            expect(createdMemberships).toEqual([expect.objectContaining({ ...membershipApplication })])
+            const membershipApplication = membershipApplicationFactory.build()
+            const createdMembership = await membershipApplicationService.createMembership(membershipApplication)
+            const allMemberships = await membershipRespoitory.getMemberships()
+            expect(allMemberships).toContainEqual(expect.objectContaining({...membershipApplication}))
         })
 
         it("sets assignedBy to 'Admin'", async () => {

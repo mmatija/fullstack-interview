@@ -40,23 +40,26 @@ describe("InMemoryMembershipRepository", () => {
         let repository: InMemoryMembershipRepository
         let membership1: StoredMembership
         let membership2: StoredMembership
-        const userId = 2000
+        let membership3: StoredMembership
 
         beforeEach(async () => {
             repository = new InMemoryMembershipRepository()
-            membership1 = await repository.createMembership({ ...membershipWithoutId, uuid: "uuid-1", userId })
-            membership2 = await repository.createMembership({ ...membershipWithoutId, uuid: "uuid-2", userId })
-            await repository.createMembership({ ...membershipWithoutId, uuid: "uuid-3", userId: 3000 })
+            membership1 = await repository.createMembership({ ...membershipWithoutId, uuid: "uuid-1", userId: 2000 })
+            membership2 = await repository.createMembership({ ...membershipWithoutId, uuid: "uuid-2", userId: 2000 })
+            membership3 = await repository.createMembership({ ...membershipWithoutId, uuid: "uuid-3", userId: 3000 })
         })
 
-        it("returns the list of all memberships for given user id", async () => {
-            const memberships = await repository.getMemberships(userId)
-            expect(memberships).toEqual([membership1, membership2])
+        it("returns all memberships", async () => {
+            const memberships = await repository.getMemberships()
+            expect(memberships).toEqual([membership1, membership2, membership3])
         })
 
-        describe("when there are no memberships for given user id", () => {
+        describe("when there are no memberships", () => {
+
+            const emptyRepository = new InMemoryMembershipRepository()
+
             it("returns an empty list", async () => {
-                const memberships = await repository.getMemberships(9999)
+                const memberships = await emptyRepository.getMemberships()
                 expect(memberships).toEqual([])
             })
         })

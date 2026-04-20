@@ -6,9 +6,8 @@ export class InMemoryMembershipRepository implements MembershipRepository {
     private memberships: StoredMembership[] = []
     private nextId = 1
 
-    getMemberships(userId: number): Promise<StoredMembership[]> {
-        const userMemberships = this.memberships.filter(membership => membership.userId === userId);
-        return Promise.resolve(userMemberships);
+    getMemberships(): Promise<StoredMembership[]> {
+        return Promise.resolve([...this.memberships]);
     }
 
     async createMembership(membership: Omit<StoredMembership, 'id'>): Promise<StoredMembership> {
