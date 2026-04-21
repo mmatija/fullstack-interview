@@ -1,25 +1,15 @@
 import express, { Request, Response, NextFunction } from "express"
 import { MembershipApplicationService } from "../services/membership-application-service"
 import { ValidationError } from "../services/validation-error"
-import moment from "moment"
+import { MembershipSerializer } from "./membership-serializer"
 
 export function createMembershipRouter(membershipService: MembershipApplicationService) {
     const router = express.Router();
+    const serializer = new MembershipSerializer()
 
     router.get("/", async (req: Request, res: Response) => {
         const memberships = await membershipService.getMemberships()
-        res.json(memberships.map(({ periods, ...membership }) => ({
-            membership: {
-                ...membership,
-                validFrom: moment(membership.validFrom).utc().format("YYYY-MM-DD"),
-                validUntil: moment(membership.validUntil).utc().format("YYYY-MM-DD"),
-            },
-            periods: periods.map(period => ({
-                ...period,
-                start: moment(period.start).utc().format("YYYY-MM-DD"),
-                end: moment(period.end).utc().format("YYYY-MM-DD"),
-            }))
-        })))
+        res.json(memberships.map(m => serializer.serialize(m)))
     })
 
     router.post("/", async (req: Request, res: Response, next: NextFunction) => {
@@ -28,19 +18,8 @@ export function createMembershipRouter(membershipService: MembershipApplicationS
             return
         }
         try {
-            const { periods, ...rest } = await membershipService.createMembership(req.body)
-            res.json({
-                membership: {
-                    ...rest,
-                    validFrom: moment(rest.validFrom).format("YYYY-MM-DD"),
-                    validUntil: moment(rest.validUntil).format("YYYY-MM-DD"),
-                },
-                periods: periods.map(period => ({
-                    ...period,
-                    start: moment(period.start).format("YYYY-MM-DD"),
-                    end: moment(period.end).format("YYYY-MM-DD"),
-                })),
-            })
+            const membership = await membershipService.createMembership(req.body)
+            res.json(serializer.serialize(membership))
         } catch (err) {
             if (err instanceof ValidationError) {
                 res.status(400).json({ message: err.message })
