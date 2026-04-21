@@ -4,6 +4,7 @@ import { createMembershipRouter } from './modern/routes/membership.routes'
 import { errorHandler } from './error-handler.middleware'
 import { InMemoryMembershipRepository } from './modern/repositories/in-memory-membership-repository'
 import { MembershipApplicationService } from './modern/services/membership-application-service'
+import { LegacyMembershipApplicationValidator } from './modern/services/legacy-membership-application-validator'
 // because of the javascript module, we need to use require to import the legacy routes
 const legacyMembershipRoutes = require('./legacy/routes/membership.routes')
 
@@ -14,7 +15,7 @@ export class Server {
 
     constructor() {
         const membershipRepository = new InMemoryMembershipRepository()
-        const membershipService = new MembershipApplicationService(membershipRepository)
+        const membershipService = new MembershipApplicationService(membershipRepository, new LegacyMembershipApplicationValidator())
 
         this.app = express();
 

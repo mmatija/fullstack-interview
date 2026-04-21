@@ -1,24 +1,32 @@
-import { describe, it, expect } from "@jest/globals";
+import { describe, it, expect, beforeEach } from "@jest/globals";
 import { MembershipApplicationService } from "../../../src/modern/services/membership-application-service";
 import { InMemoryMembershipRepository } from "../../../src/modern/repositories/in-memory-membership-repository";
 import { ValidationError } from "../../../src/modern/services/validation-error";
-import { BillingInterval, MembershipApplication, PaymentMethod } from "../../../src/modern/models/membership";
+import { BillingInterval } from "../../../src/modern/models/membership";
 import { MembershipApplicationFactory } from "../factory/membership-application";
+import { MembershipApplicationValidator } from "../../../src/modern/services/membership-application-validator";
 import moment from "moment";
 
 describe("membership application service", () => {
 
-    const membershipRespoitory = new InMemoryMembershipRepository()
-    const membershipApplicationService = new MembershipApplicationService(membershipRespoitory)
-    const membershipApplicationFactory = new MembershipApplicationFactory()
+    let membershipRepository: InMemoryMembershipRepository;
+    let membershipApplicationService: MembershipApplicationService;
+    let membershipApplicationFactory: MembershipApplicationFactory;
+    let stubValidator: MembershipApplicationValidator;
 
+    beforeEach(() => {
+        membershipRepository = new InMemoryMembershipRepository()
+        stubValidator = { validate: () => [] }
+        membershipApplicationService = new MembershipApplicationService(membershipRepository, stubValidator)
+        membershipApplicationFactory = new MembershipApplicationFactory()
+    })
 
     describe("createMembership", () => {
 
         it("creates a new membership containing the data from the application", async () => {
             const membershipApplication = membershipApplicationFactory.build()
             const createdMembership = await membershipApplicationService.createMembership(membershipApplication)
-            const allMemberships = await membershipRespoitory.getMemberships()
+            const allMemberships = await membershipRepository.getMemberships()
             expect(allMemberships).toContainEqual(expect.objectContaining({...membershipApplication}))
         })
 
@@ -108,79 +116,15 @@ describe("membership application service", () => {
         })
 
 
-        describe("when recurringPrice is negative", () => {
-            const invalidMembershipApplication = membershipApplicationFactory.build({ recurringPrice: -1 })
-            it("throws an error'", async () => {
-                await assertThrowsValidationError(invalidMembershipApplication, "negativeRecurringPrice")
+        describe("when the validator returns validation errors", () => {
+            it("throws the first validation error", async () => {
+                const firstError = new ValidationError("negativeRecurringPrice")
+                const secondError = new ValidationError("cashPriceBelow100")
+                stubValidator.validate = () => [firstError, secondError]
+                const membershipApplication = membershipApplicationFactory.build()
+                await expect(membershipApplicationService.createMembership(membershipApplication)).rejects.toThrow(firstError)
             })
         })
-
-        describe("when recurringPrice is greater than 100 and payment method is cash", () => {
-            const invalidMembershipApplication = membershipApplicationFactory.build({ recurringPrice: 101, paymentMethod: PaymentMethod.Cash })
-            it("throws an error'", async () => {
-                await assertThrowsValidationError(invalidMembershipApplication, "cashPriceBelow100")
-            })
-        })
-
-        describe("when billingInterval is 'monthly'", () => {
-            describe("when billingPeriods is more than 12", () => {
-
-                it("throws an error'", async () => {
-                    const invalidMembershipApplication = membershipApplicationFactory.build({ billingInterval: BillingInterval.Monthly, billingPeriods: 13 })
-                    await assertThrowsValidationError(invalidMembershipApplication, "billingPeriodsMoreThan12Months")
-                })
-            })
-
-            describe("when billingPerions is less than 6", () => {
-                it("throws an error", async () => {
-                    const invalidMembershipApplication = membershipApplicationFactory.build({ billingInterval: BillingInterval.Monthly, billingPeriods: 5 })
-                    await assertThrowsValidationError(invalidMembershipApplication, "billingPeriodsLessThan6Months")
-                })
-            })
-
-            describe("when billingPeriods is between 6 and 12", () => {
-                it("does not throw an error", async () => {
-                    const validMembershipApplication = membershipApplicationFactory.build({ billingInterval: BillingInterval.Monthly, billingPeriods: 6 })
-                    await expect(membershipApplicationService.createMembership(validMembershipApplication)).resolves.toBeTruthy()
-                })
-            })
-        })
-
-        describe("when billingInterval is 'yearly'", () => {
-
-            describe("when billingPeriods is more than 3 and less than or equal to 10", () => {
-                it("throws an error", async () => {
-                    const invalidMembershipApplication = membershipApplicationFactory.build({ billingInterval: BillingInterval.Yearly, billingPeriods: 4 })
-                    await assertThrowsValidationError(invalidMembershipApplication, "billingPeriodsLessThan3Years") // Confusing error message, but we want to keep it for backward compatibility
-                })
-            })
-
-            describe("when billingPeriods is more than 10", () => {
-                it("throws an error", async () => {
-                    const invalidMembershipApplication = membershipApplicationFactory.build({ billingInterval: BillingInterval.Yearly, billingPeriods: 11 })
-                    await assertThrowsValidationError(invalidMembershipApplication, "billingPeriodsMoreThan10Years")
-                })
-            })
-
-            describe("when billingPeriods is less than or equal to 3", () => {
-                it("does not throw an error", async () => {
-                    const validMembershipApplication = membershipApplicationFactory.build({ billingInterval: BillingInterval.Yearly, billingPeriods: 3 })
-                    await expect(membershipApplicationService.createMembership(validMembershipApplication)).resolves.toBeTruthy()
-                })
-            })
-        })
-
-        describe("when billing interval is neither monthly nor yearly", () => {
-            it("throws an error", async () => {
-                const invalidMembershipApplication = membershipApplicationFactory.build({ billingInterval: BillingInterval.Weekly, billingPeriods: 5 })
-                await assertThrowsValidationError(invalidMembershipApplication, "invalidBillingPeriods")
-            })
-        })
-
-        async function assertThrowsValidationError(invalidMembershipApplication: MembershipApplication, expectedMessage: string) {
-            await expect(membershipApplicationService.createMembership(invalidMembershipApplication)).rejects.toThrow(expectedMessage)
-            await expect(membershipApplicationService.createMembership(invalidMembershipApplication)).rejects.toThrow(ValidationError)
-        }
     })
 
     describe("getMemberships", () => {

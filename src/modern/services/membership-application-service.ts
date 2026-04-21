@@ -1,12 +1,15 @@
-import { ValidationError } from "./validation-error";
 import { BillingInterval, Membership, MembershipApplication as MembershipApplication, MembershipPeriod, MembershipState, StoredMembership } from "../models/membership";
 import { MembershipRepository } from "../repositories/memberships-repository";
+import { MembershipApplicationValidator } from "./membership-application-validator";
 import { v4 as uuid } from 'uuid';
 import moment from "moment";
 
 export class MembershipApplicationService {
 
-    constructor(private membershipRepository: MembershipRepository) {}
+    constructor(
+        private membershipRepository: MembershipRepository,
+        private membershipApplicationValidator: MembershipApplicationValidator
+    ) {}
 
     async getMemberships(): Promise<Membership[]> {
         const storedMemberships = await this.membershipRepository.getMemberships()
@@ -17,10 +20,9 @@ export class MembershipApplicationService {
     }
 
     async createMembership(membershipApplication: MembershipApplication): Promise<Membership> {
-        try {
-            this.validateMembership(membershipApplication)
-        } catch (error) {
-            return Promise.reject(error)
+        const errors = this.membershipApplicationValidator.validate(membershipApplication)
+        if (errors.length > 0) {
+            return Promise.reject(errors[0])
         }
         const now = moment()
         const validFrom = membershipApplication.validFrom ? moment.utc(membershipApplication.validFrom) : now.clone()
@@ -90,32 +92,4 @@ export class MembershipApplicationService {
             return validFrom.clone().add(billingPeriods, "years").toDate()
         }
     }
-
-    private validateMembership(membershipRequest: MembershipApplication): void {
-        if (membershipRequest.recurringPrice < 0) {
-            throw new ValidationError("negativeRecurringPrice")
-        }
-        if (membershipRequest.paymentMethod === "cash" && membershipRequest.recurringPrice > 100) {
-            throw new ValidationError("cashPriceBelow100")
-        }
-        if (membershipRequest.billingInterval == BillingInterval.Monthly) {
-            if (membershipRequest.billingPeriods > 12) {
-                throw new ValidationError("billingPeriodsMoreThan12Months")
-            }
-            if (membershipRequest.billingPeriods < 6) {
-                throw new ValidationError("billingPeriodsLessThan6Months")
-            }
-        } else if (membershipRequest.billingInterval == BillingInterval.Yearly) {
-            if (membershipRequest.billingPeriods > 3) {
-                if (membershipRequest.billingPeriods > 10) {
-                    throw new ValidationError("billingPeriodsMoreThan10Years")
-                }
-                throw new ValidationError("billingPeriodsLessThan3Years")
-            }
-        } else {
-            throw new ValidationError("invalidBillingPeriods")
-        }
-    }
-
-
 }
