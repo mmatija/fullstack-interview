@@ -164,6 +164,30 @@ describe("Membership API", () => {
             })
         })
 
+        describe("when there is a validation error", () => {
+            it("returns status code 400", async () => {
+                await assertBadRequest({
+                    name: "Test Membership",
+                    userId: 1,
+                    recurringPrice: 100,
+                    validFrom: "2023-01-01",
+                    paymentMethod: "credit card",
+                    billingInterval: "weekly",
+                })
+            })
+
+            it("returns error message", async () => {
+                await assertErrorMessage({
+                    name: "Test Membership",
+                    userId: 1,
+                    recurringPrice: 100,
+                    validFrom: "2023-01-01",
+                    paymentMethod: "credit card",
+                    billingInterval: "weekly",
+                }, "invalidBillingPeriods")
+            })
+        })
+
         async function assertBadRequest(requestBody: object) {
             const response = await sendCreateMembershipRequest(requestBody)
             expect(response.status).toEqual(400)
