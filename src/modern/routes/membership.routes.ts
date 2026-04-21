@@ -1,6 +1,4 @@
 import express, { Request, Response, NextFunction } from "express"
-import memberships from "../../data/memberships.json"
-import membershipPeriods from "../../data/membership-periods.json"
 import { MembershipApplicationService } from "../services/membership-application-service"
 import { ValidationError } from "../services/validation-error"
 import moment from "moment"
@@ -8,12 +6,20 @@ import moment from "moment"
 export function createMembershipRouter(membershipService: MembershipApplicationService) {
     const router = express.Router();
 
-    router.get("/", (req: Request, res: Response) => {
-        const response = memberships.map(membership => {
-            const periods = membershipPeriods.filter(period => period.membership === membership.id)
-            return { membership, periods }
-        })
-        res.json(response)
+    router.get("/", async (req: Request, res: Response) => {
+        const memberships = await membershipService.getMemberships()
+        res.json(memberships.map(({ periods, ...membership }) => ({
+            membership: {
+                ...membership,
+                validFrom: moment(membership.validFrom).utc().format("YYYY-MM-DD"),
+                validUntil: moment(membership.validUntil).utc().format("YYYY-MM-DD"),
+            },
+            periods: periods.map(period => ({
+                ...period,
+                start: moment(period.start).utc().format("YYYY-MM-DD"),
+                end: moment(period.end).utc().format("YYYY-MM-DD"),
+            }))
+        })))
     })
 
     router.post("/", async (req: Request, res: Response, next: NextFunction) => {
@@ -22,12 +28,14 @@ export function createMembershipRouter(membershipService: MembershipApplicationS
             return
         }
         try {
-            const membership = await membershipService.createMembership(req.body)
+            const { periods, ...rest } = await membershipService.createMembership(req.body)
             res.json({
-                ...membership,
-                validFrom: moment(membership.validFrom).format("YYYY-MM-DD"),
-                validUntil: moment(membership.validUntil).format("YYYY-MM-DD"),
-                periods: membership.periods.map(period => ({
+                membership: {
+                    ...rest,
+                    validFrom: moment(rest.validFrom).format("YYYY-MM-DD"),
+                    validUntil: moment(rest.validUntil).format("YYYY-MM-DD"),
+                },
+                periods: periods.map(period => ({
                     ...period,
                     start: moment(period.start).format("YYYY-MM-DD"),
                     end: moment(period.end).format("YYYY-MM-DD"),

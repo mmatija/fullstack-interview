@@ -182,4 +182,29 @@ describe("membership application service", () => {
             await expect(membershipApplicationService.createMembership(invalidMembershipApplication)).rejects.toThrow(ValidationError)
         }
     })
+
+    describe("getMemberships", () => {
+        it("returns all memberships with their periods", async () => {
+            const membershipApplication = membershipApplicationFactory.build({ validFrom: moment().toDate(), billingInterval: BillingInterval.Yearly, billingPeriods: 2 })
+            const createdMembership = await membershipApplicationService.createMembership(membershipApplication)
+            const memberships = await membershipApplicationService.getMemberships()
+            expect(memberships).toContainEqual(expect.objectContaining({
+                ...createdMembership,
+                periods: [
+                    expect.objectContaining({
+                        membershipId: createdMembership.id,
+                        start: createdMembership.validFrom,
+                        end: moment(createdMembership.validFrom).add(1, "year").toDate(),
+                        state: 'planned'
+                    }),
+                    expect.objectContaining({
+                        membershipId: createdMembership.id,
+                        start: moment(createdMembership.validFrom).add(1, "year").toDate(),
+                        end: moment(createdMembership.validFrom).add(2, "years").toDate(),
+                        state: 'planned'
+                    })
+                ]
+            }))
+        })
+    })
 })

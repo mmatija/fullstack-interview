@@ -8,6 +8,14 @@ export class MembershipApplicationService {
 
     constructor(private membershipRepository: MembershipRepository) {}
 
+    async getMemberships(): Promise<Membership[]> {
+        const storedMemberships = await this.membershipRepository.getMemberships()
+        return storedMemberships.map(stored => ({
+            ...stored,
+            periods: this.calculatePeriods(stored)
+        }))
+    }
+
     async createMembership(membershipApplication: MembershipApplication): Promise<Membership> {
         try {
             this.validateMembership(membershipApplication)
@@ -15,7 +23,7 @@ export class MembershipApplicationService {
             return Promise.reject(error)
         }
         const now = moment()
-        const validFrom = membershipApplication.validFrom ? moment(membershipApplication.validFrom) : now.clone()
+        const validFrom = membershipApplication.validFrom ? moment.utc(membershipApplication.validFrom) : now.clone()
         const validUntil = this.calculateValidUntil(validFrom, membershipApplication)
         const storedMembership = await this.membershipRepository.createMembership({
             uuid: uuid(),
@@ -33,7 +41,7 @@ export class MembershipApplicationService {
 
     private calculatePeriods(storedMembership: StoredMembership): MembershipPeriod[] {
         const periods: MembershipPeriod[] = []
-        let periodStart = moment(storedMembership.validFrom)
+        let periodStart = moment.utc(storedMembership.validFrom)
 
         for (let i = 0; i < storedMembership.billingPeriods; i++) {
             const periodEnd = this.calculatePeriodEnd(periodStart, storedMembership.billingInterval)
