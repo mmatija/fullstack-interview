@@ -9,31 +9,64 @@ database Database
 database "File storage (S3)" as fileStorage
 collections "Notification Worker" as notificationWorker
 participant  "Email Service (SES)" as emailService
+
 User -> Frontend : Request export
+activate Frontend
 Frontend -> lb : Make request
+activate lb
 lb -> Backend : Forward request
+activate Backend
 Backend -> queue: Add export job to queue
+activate queue
 queue --> Backend
+deactivate queue
 Backend -->  lb
+deactivate Backend
 lb --> Frontend
+deactivate lb
 Frontend --> User
+deactivate Frontend
+
+loop Async
 csvGeneratorWorker -> queue : Poll for export jobs
+activate csvGeneratorWorker
+activate queue
 queue --> csvGeneratorWorker
+deactivate queue
 csvGeneratorWorker -> Database : Fetch data for export
+activate Database
 Database --> csvGeneratorWorker
+deactivate Database
 csvGeneratorWorker -> csvGeneratorWorker : Generate CSV
 csvGeneratorWorker -> fileStorage : Upload CSV
+activate fileStorage
 fileStorage --> csvGeneratorWorker
+deactivate fileStorage
 note right: It could also make sense to update\ndatabase entries,in case we need to cache\nthe result for subsequent export requests. 
 csvGeneratorWorker -> queue : Add job result to queue
+activate queue
 note right: An alternative could be to utilize S3's event notifications\nto send an Email to user when new file is created,\nbut that would couple us more tightly with AWS.
 queue --> csvGeneratorWorker
+deactivate queue
+deactivate csvGeneratorWorker
+end loop
+
+loop Async
 notificationWorker -> queue : Poll for job results
+activate queue
+activate notificationWorker
 queue --> notificationWorker
+deactivate queue
 notificationWorker -> fileStorage: Download CSV file
+activate fileStorage
 fileStorage --> notificationWorker
-note right: At some point it would make sense to delete the file\nafter it was sent, maybe utilizing S3's lifecycle policies.
+deactivate fileStorage
+note right: At some point it would make sense\nto delete the file after it was sent,\nmaybe utilizing S3's lifecycle policies.
 notificationWorker -> emailService : Request email to be sent
+activate emailService
 emailService --> notificationWorker
+deactivate notificationWorker
+end loop
 emailService -> User : Send email with CSV file
+deactivate emailService
 @enduml
