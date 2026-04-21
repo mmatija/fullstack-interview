@@ -24,10 +24,10 @@ export class MembershipApplicationService {
         }
         const now = moment()
         const validFrom = membershipApplication.validFrom ? moment.utc(membershipApplication.validFrom) : now.clone()
-        const validUntil = this.calculateValidUntil(validFrom, membershipApplication)
+        const validUntil = this.calculateValidUntil(validFrom, membershipApplication.billingInterval, membershipApplication.billingPeriods)
         const storedMembership = await this.membershipRepository.createMembership({
-            uuid: uuid(),
             ...membershipApplication,
+            uuid: uuid(),
             state: this.calculateState(now, validFrom, membershipApplication),
             validFrom: validFrom.toDate(),
             validUntil,
@@ -70,7 +70,7 @@ export class MembershipApplicationService {
     }
 
     private calculateState(currentDate: moment.Moment, validFrom: moment.Moment, membershipRequest: MembershipApplication): MembershipState {
-        const membershipValidUntil = this.calculateValidUntil(validFrom, membershipRequest)
+        const membershipValidUntil = this.calculateValidUntil(validFrom, membershipRequest.billingInterval, membershipRequest.billingPeriods)
         if (validFrom.isAfter(currentDate)) {
             return MembershipState.Pending
         }
@@ -81,13 +81,13 @@ export class MembershipApplicationService {
         return MembershipState.Active
     }
 
-    private calculateValidUntil(currentDate: moment.Moment, membershipRequest: MembershipApplication): Date {
-        if (membershipRequest.billingInterval === BillingInterval.Weekly) {
-            return currentDate.clone().add(membershipRequest.billingPeriods, "weeks").toDate()
-        } else if (membershipRequest.billingInterval === BillingInterval.Monthly) {
-            return currentDate.clone().add(membershipRequest.billingPeriods, "months").toDate()
+    private calculateValidUntil(validFrom: moment.Moment, billingInterval: BillingInterval, billingPeriods: number): Date {
+        if (billingInterval === BillingInterval.Weekly) {
+            return validFrom.clone().add(billingPeriods, "weeks").toDate()
+        } else if (billingInterval === BillingInterval.Monthly) {
+            return validFrom.clone().add(billingPeriods, "months").toDate()
         } else {
-            return currentDate.clone().add(membershipRequest.billingPeriods, "years").toDate()
+            return validFrom.clone().add(billingPeriods, "years").toDate()
         }
     }
 

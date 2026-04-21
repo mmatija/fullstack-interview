@@ -14,8 +14,7 @@ export function createMembershipRouter(membershipService: MembershipApplicationS
 
     router.post("/", async (req: Request, res: Response, next: NextFunction) => {
         if (!req.body.name || !req.body.recurringPrice) {
-            res.status(400).json({ message: "missingMandatoryFields" })
-            return
+            return res.status(400).json({ message: "missingMandatoryFields" })
         }
         try {
             const membership = await membershipService.createMembership(req.body)
