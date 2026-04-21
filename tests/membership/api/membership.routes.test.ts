@@ -29,7 +29,7 @@ describe("Membership API", () => {
             name: "Test Membership 2",
             userId: 2,
             recurringPrice: 100,
-            validFrom: "2023-01-01",
+            validFrom: "2025-01-01",
             paymentMethod: "credit card",
             billingInterval: "yearly",
             billingPeriods: 1
@@ -42,7 +42,7 @@ describe("Membership API", () => {
         it("returns the list of memberships and their periods", async () => {
             const response = await fetch(`http://localhost:${port}/memberships`);
             const data = await response.json()
-            const expectedResponse = [
+            expect(data).toEqual(expect.arrayContaining([
                 {
                     membership: expect.objectContaining({
                         name: membership1.name,
@@ -60,10 +60,26 @@ describe("Membership API", () => {
                         end: "2024-01-01",
                         state: "planned"
                     })])
+                },
+                {
+                    membership: expect.objectContaining({
+                        name: membership2.name,
+                        userId: membership2.userId,
+                        recurringPrice: membership2.recurringPrice,
+                        paymentMethod: membership2.paymentMethod,
+                        billingInterval: membership2.billingInterval,
+                        billingPeriods: membership2.billingPeriods,
+                    }),
+                    periods: expect.arrayContaining([expect.objectContaining({
+                        id: expect.any(Number),
+                        uuid: expect.any(String),
+                        membershipId: expect.any(Number),
+                        start: "2025-01-01",
+                        end: "2026-01-01",
+                        state: "planned"
+                    })])
                 }
-            ]
-            expect(data).toHaveLength(2)
-            expect(data).toEqual(expect.arrayContaining(expectedResponse))
+            ]))
         })
     })
 
