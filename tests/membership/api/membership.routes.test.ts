@@ -84,6 +84,20 @@ describe("Membership API", () => {
     })
 
     describe("POST /memberships", () => {
+
+        it("returns status code 201", async () => {
+            const response = await sendCreateMembershipRequest({
+                name: "Test Membership",
+                userId: 1,
+                recurringPrice: 100,
+                validFrom: "2023-01-01",
+                paymentMethod: "credit card",
+                billingInterval: "yearly",
+                billingPeriods: 1
+            })
+            expect(response.status).toEqual(201)
+        })
+
         it("returns created membership and their periods", async () => {
             const requestBody = {
                 name: "Test Membership",

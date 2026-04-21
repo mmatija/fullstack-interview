@@ -18,7 +18,7 @@ export function createMembershipRouter(membershipService: MembershipApplicationS
         }
         try {
             const membership = await membershipService.createMembership(req.body)
-            res.json(serializer.serialize(membership))
+            res.status(201).json(serializer.serialize(membership))
         } catch (err) {
             if (err instanceof ValidationError) {
                 res.status(400).json({ message: err.message })
