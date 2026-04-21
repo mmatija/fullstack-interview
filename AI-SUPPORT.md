@@ -2,3 +2,4 @@
 - Used Copilot to ask where I have a syntax error in the file
 - Discussed ideation of replacing `Membership` interface with a class which would encapsulate the logic for calculating the periods
 - In some cases wrote a failing test and asked Copilot to implement the functionality to make the test pass
+- Asked Copilot to generate a `curl` command for creating a membership
